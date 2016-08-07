@@ -15,7 +15,7 @@ CGGD::WinAPI::Instance::Handle CGGD::WinAPI::Instance::GetHangle() const
 }
 
 
-CGGD::WinAPI::WindowClass::WindowClass(Instance* instance_, const Name& name_):
+CGGD::WinAPI::WindowClass::WindowClass(Instance* instance_, const Name& name_, const WNDPROC wndproc, UINT wndclassStyle) :
 	instance(instance_),
 	name(name_)
 {
@@ -25,8 +25,8 @@ CGGD::WinAPI::WindowClass::WindowClass(Instance* instance_, const Name& name_):
 
 		windowClass.lpszClassName = name.c_str();
 		windowClass.hInstance = instance->GetHangle();
-		windowClass.lpfnWndProc = DefWindowProcA;
-		windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		windowClass.lpfnWndProc = wndproc;
+		windowClass.style = wndclassStyle;
 
 		if(!RegisterClassA(&windowClass))
 		{
@@ -51,13 +51,13 @@ CGGD::WinAPI::WindowClass::Name CGGD::WinAPI::WindowClass::GetName() const
 }
 
 
-CGGD::WinAPI::Window::Window(WindowClass* windowClass_, const Name& name_):
+CGGD::WinAPI::Window::Window(WindowClass* windowClass_, const Name& name_, DWORD wndStyle):
 	windowClass(windowClass_),
 	name(name_),
 	handle(CreateWindowA(
 		windowClass->GetName().c_str(),
 		name.c_str(),
-		WS_SYSMENU | WS_VISIBLE,
+		wndStyle,
 		0, 0, 800, 600,
 		NULL,
 		NULL,

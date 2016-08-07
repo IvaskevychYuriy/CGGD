@@ -8,6 +8,7 @@
 #include <cmath>
 #include <utility>
 #include <algorithm>
+#include <ctime>
 using namespace std;
 
 #include <WinAPI/Window.hpp>
@@ -24,7 +25,6 @@ using namespace CGGD::OpenIL;
 #pragma endregion
 
 #define PATH(x) "../../../../" + (std::string)x
-
 std::string path(const std::string& x)
 {
 	return "../../../../" + x;
@@ -125,7 +125,7 @@ public:
 
 	Texture2D(const Texture2D& other) = delete;
 
-	Texture2D(Texture2D && other)
+	Texture2D(Texture2D&& other)
 	{
 		swap(mTexture, other.mTexture);
 		swap(mSlot, other.mSlot);
@@ -224,11 +224,7 @@ private:
 		}
 	}
 
-public:
-	Sprite(float x, float y, float w, float h, float ang) :
-		posX(x), posY(y),
-		sizeX(w), sizeY(h),
-		angle(ang)
+	void init()
 	{
 		//vbo
 		{
@@ -301,12 +297,31 @@ public:
 		}
 	}
 
+public:
+	Sprite(float x, float y, float w, float h, float ang) :
+		posX(x), posY(y),
+		sizeX(w), sizeY(h),
+		angle(ang)
+	{
+		init();
+	}
+
 	Sprite(float x, float y, float w, float h, float ang, unsigned int prior, Texture2D* textur) :
 		Sprite(x,y,w,h,ang)
 	{
 		setPriority(prior);
 
 		texture = textur;
+	}
+
+	Sprite(const Sprite& other) :
+		Sprite(other.posX, other.posY, other.sizeX, other.sizeY, other.angle, other.mPriority, other.texture)
+	{
+	}
+
+	Sprite(Sprite&& other)
+	{
+		*this = std::move(other);
 	}
 
 	~Sprite()
@@ -321,6 +336,53 @@ public:
 
 		glBindVertexArray(0); 
 		glDeleteVertexArrays(1, &mAttributeBuffer);
+	}
+
+	Sprite& operator= (const Sprite& other)
+	{
+		if (this != &other)
+		{
+			this->~Sprite();
+
+			posX = other.posX;
+			posY = other.posY;
+			sizeX = other.sizeX;
+			sizeY = other.sizeY;
+			texture = other.texture;
+
+			init();
+			setPriority(other.mPriority);
+		}
+
+		return *this;
+	}
+
+	Sprite& operator= (Sprite&& other)
+	{
+		if (this == &other)
+		{
+			return *this;
+		}
+
+		using std::swap;
+
+		swap(posX, other.posX);
+		swap(posY, other.posY);
+		swap(sizeX, other.sizeX);
+		swap(sizeY, other.sizeY);
+		swap(texture, other.texture);
+		swap(angle, other.angle);
+		swap(mVertexBuffer, other.mVertexBuffer);
+		swap(mIndexBuffer, other.mIndexBuffer);
+		swap(mAttributeBuffer, other.mAttributeBuffer);
+
+		other.mVertexBuffer = -1;
+		other.mIndexBuffer = -1;
+		other.mAttributeBuffer = -1;
+
+		setPriority(other.mPriority);
+
+		return *this;
 	}
 
 	void setPriority(unsigned int priority)
@@ -411,6 +473,7 @@ std::vector<const Sprite *> Sprite::smObjects = std::vector<const Sprite *>();
 
 void func()
 {
+	srand(time(0));
 	auto instance = Instance::Get();
 	auto windowClass = new WindowClass(instance, "class");
 	auto window = new Window(windowClass, "window");
@@ -538,7 +601,19 @@ void func()
 
 	Texture2D texture2(path("Media/Images/image3.png"));
 
-	Sprite sprite2(150, 200, 200, 200, 0, 0, &texture2);
+	Sprite sprite2(150, 200, 200, 200, 0, 1, &texture2);
+
+	std::vector<Sprite> sprites(10, { 100, 100, 100, 100, 0, 0, &texture1 });
+	for (auto& sprite : sprites)
+	{
+		sprite.posX = rand() % 700 + 50;
+		sprite.posY = rand() % 500 + 50;
+		sprite.sizeX = rand() % 100 + 100;
+		sprite.sizeY = rand() % 100 + 100;
+		sprite.angle = rand() % 360;
+		sprite.setPriority(rand() % 15);
+		sprite.texture = &(rand() % 2 ? texture1 : texture2);
+	}
 
 	float t = 0.0f;
 
@@ -593,6 +668,10 @@ void main()
 	catch(CGGD::OpenIL::Exception exception)
 	{
 		cout << "OpenIL exception:\n" << exception.GetText() << endl;
+	}
+	catch (const std::exception& e)
+	{
+		cout << "Exception:\n" << e.what() << endl;
 	}
 
 	system("pause");

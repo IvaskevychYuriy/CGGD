@@ -34,7 +34,7 @@ namespace CGGD
 			Instance*const instance;
 			const Name name;
 		public:
-			WindowClass(Instance* instance_, const Name& name_);
+			WindowClass(Instance* instance_, const Name& name_, const WNDPROC wndproc = DefWindowProcA, UINT wndclassStyle = CS_HREDRAW | CS_VREDRAW | CS_OWNDC);
 			~WindowClass();
 		public:
 			Instance* GetInstance() const;
@@ -51,7 +51,7 @@ namespace CGGD
 			const Name name;
 			const Handle handle;
 		public:
-			Window(WindowClass* windowClass_, const Name& name_);
+			Window(WindowClass* windowClass_, const Name& name_, DWORD wndStyle = WS_SYSMENU | WS_VISIBLE);
 			~Window();
 		public:
 			Name GetName() const;
