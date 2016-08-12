@@ -9,6 +9,7 @@
 #include <utility>
 #include <algorithm>
 #include <ctime>
+#include <chrono>
 using namespace std;
 
 #include <WinAPI/Window.hpp>
@@ -25,6 +26,7 @@ using namespace CGGD::OpenIL;
 #pragma endregion
 
 #define PATH(x) "../../../../" + (std::string)x
+
 std::string path(const std::string& x)
 {
 	return "../../../../" + x;
@@ -430,7 +432,7 @@ public:
 			OpenGL::ErrorTest();
 
 			//rotate
-			float angleToRadians = M_PI / 180.0f * sprite->angle;
+			float angleToRadians = M_PI / 180.0f * (360.0f - sprite->angle);
 			
 			//distances from centre
 			float dpx = sprite->posX - (smWndWidth / 2.0f); // DeltaX /from center/ in pixels
@@ -446,9 +448,9 @@ public:
 			float ky = sprite->sizeY / smWndHeight;
 			float kz = 1;
 
-			std::vector<float> transformMatrix = { //Scale, Rotate and Translate => (TxR)xS
-				cos(angleToRadians)*kx, -sin(angleToRadians)*ky, 0.0f, dx,
-				sin(angleToRadians)*kx, cos(angleToRadians)*ky, 0.0f, dy,
+			std::vector<float> transformMatrix = { //Rotate, Scale and Translate => Tx(SxR)
+				cos(angleToRadians)*kx, -sin(angleToRadians)*kx, 0.0f, dx,
+				sin(angleToRadians)*ky, cos(angleToRadians)*ky, 0.0f, dy,
 				0.0f, 0.0f, 1.0f*kz, dz,
 				0.0f, 0.0f, 0.0f, 1.0f
 			};
@@ -481,6 +483,10 @@ void func()
 	deviceContext->SetPixelFormat();
 	auto renderContext = new RenderContextExtended(deviceContext);
 	renderContext->Set();
+
+	//std::chrono::steady_clock clock;
+	auto start = std::chrono::steady_clock::now();
+	auto end = start;
 
 	GLuint program = glCreateProgram();
 	{
@@ -597,21 +603,23 @@ void func()
 
 	Texture2D texture1(path("Media/Images/image.png"));
 
-	Sprite sprite1(500, 400, 200, 200, 0, 0, &texture1);
+	Sprite sprite1(500, 400, 200, 200, 0, 1000000, &texture1);
 
 	Texture2D texture2(path("Media/Images/image3.png"));
 
-	Sprite sprite2(150, 200, 200, 200, 0, 1, &texture2);
+	Sprite sprite2(150, 200, 200, 200, 0, 1000001, &texture2);
 
-	std::vector<Sprite> sprites(10, { 100, 100, 100, 100, 0, 0, &texture1 });
+	Sprite sprite3(400, 300, 200, 200, 20, 1000002, &texture2);
+
+	std::vector<Sprite> sprites(10000, { 10, 10, 100, 100, 0, 0, &texture1 });
 	for (auto& sprite : sprites)
 	{
-		sprite.posX = rand() % 700 + 50;
-		sprite.posY = rand() % 500 + 50;
-		sprite.sizeX = rand() % 100 + 100;
-		sprite.sizeY = rand() % 100 + 100;
+		sprite.posX = rand() % 800;
+		sprite.posY = rand() % 800;
+		sprite.sizeX = rand() % 10 + 5;
+		sprite.sizeY = rand() % 10 + 5;
 		sprite.angle = rand() % 360;
-		sprite.setPriority(rand() % 15);
+		sprite.setPriority(rand() % 15000);
 		sprite.texture = &(rand() % 2 ? texture1 : texture2);
 	}
 
@@ -634,12 +642,16 @@ void func()
 		sprite2.angle = t*100;
 		sprite2.sizeX = fabs(sin(t) * 800);
 
+		start = std::chrono::steady_clock::now();
 		Sprite::renderAll();
+		end = std::chrono::steady_clock::now();
+
+		std::cout << "time per frame: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << " mks\n";
 
 		window->Loop();
 		deviceContext->SwapBuffers();
 	
-		Sleep(10);
+		//Sleep(10);
 	}
 
 	glUseProgram(0); glDeleteProgram(program);
