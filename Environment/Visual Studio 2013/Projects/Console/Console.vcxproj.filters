@@ -18,6 +18,9 @@
     <ClCompile Include="..\..\..\..\Source\Console\Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Source\Console\HelperClasses.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\Media\Shaders\1.fs" />
@@ -27,5 +30,10 @@
     <Image Include="..\..\..\..\Media\Images\image.png">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\Source\Console\HelperClasses.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
